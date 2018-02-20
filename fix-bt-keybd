@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if [ "$1" == "on" ]; then
+    hidutil property --set '{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000064,"HIDKeyboardModifierMappingDst":0x700000035},{"HIDKeyboardModifierMappingSrc":0x700000035,"HIDKeyboardModifierMappingDst":0x700000064}]}'
+    echo bt keyboard mapping turned on
+    exit 0
+fi
+if [ "$1" == "off" ]; then
+    hidutil property --set '{"UserKeyMapping":[]}'
+    echo bt keyboard mapping turned off
+    exit 0
+fi
+
+# auto detection
+if ( system_profiler SPBluetoothDataType 2>/dev/null | tr "\n" " " | expand | tr -s " " | grep  "Magic Keyboard Paired: Yes Configured: Yes Connected: Yes" > /dev/null ); then
+    $0 on && exit 0
+else    
+    $0 off && exit 0
+fi    
+
+echo not doing nothing
+exit 1
