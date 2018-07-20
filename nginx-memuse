@@ -61,22 +61,23 @@ def scan(pid, level=0):
     for pfn in pfns:
         whole.add(pfn)
     new_frames = len(whole)
-    print '%s - %5i %s (%-030s):  %8i  +%-8i %10i KB' % (
+    print '%s - %5i %s (%-030s):  %8i  +%-8i +%-6iMB %10i KB' % (
         ' ' * level,
         p.pid,
         ' ' * (10 - level),
         ' '.join(p.cmdline())[:30],
         len(pfns),
         (new_frames - old_frames),
+        (new_frames - old_frames)*PAGESIZE/1024/1024,
         len(pfns) * PAGESIZE / 1024
     )
     for c in p.children():
         scan(c.pid, level=level+1)
 
-print 'PID                 Commandline                          Frames (+unique)           VMEM'
+print 'PID                 Commandline                          Frames (+unique)  +added          VMEM'
 scan(pid)
 print '----------------------------------------------------------------------------------------'
-print 'TOTAL:                                                 %8i            %10i KB' % (
+print 'TOTAL:                                                         %8i    +%-6iMB' % (
     len(whole),
-    len(whole) * PAGESIZE / 1024
+    len(whole) * PAGESIZE / 1024 / 1024
 )
