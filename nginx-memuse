@@ -24,9 +24,12 @@ def get_pages(pid):
 
     f = open('/proc/%i/pagemap' % pid, 'rb')
     for map in maps:
+        f.seek(8 * map.mfrom / PAGESIZE )
+        abytes = f.read(8 * ( map.mto/ PAGESIZE - map.mfrom / PAGESIZE + 1))
+        idx = 0
         for vpage in range(map.mfrom / PAGESIZE, map.mto / PAGESIZE + 1):
-            f.seek(8 * vpage)
-            bytes = f.read(8)
+            bytes = abytes[idx:idx+8]
+            idx += 8
             if bytes:
                 page = struct.unpack('<Q', bytes)[0]
                 pfn = page & 0x7FFFFFFFFFFFFF
@@ -35,14 +38,18 @@ def get_pages(pid):
                 present = bool(page & (2 ** 63))
 
                 pfns.add(pfn)
-
     return pfns
 
 try:
     pid = int(sys.argv[1])
 except:
-    print 'Usage: memuse.py <pid>'
-    sys.exit(1)
+    pid = os.popen("ps -ef | grep master | grep nginx | grep -v grep | tr -s ' ' | cut -d ' ' -f2").read()
+    if not pid:
+        print 'Usage: memuse.py <pid>'
+        sys.exit(1)
+    else:
+        print "Found nginx master: "+pid
+        pid = int(pid)
 
 
 whole = set()
